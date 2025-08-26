@@ -1,0 +1,394 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <title>Cyber Tech Fingerprint Scanner Touch & Hold</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap");
+
+    body {
+      margin: 0;
+      background: #010a1a;
+      font-family: "Orbitron", monospace;
+      color: #00ff99;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      user-select: none;
+      overflow: hidden;
+      padding: 1rem;
+    }
+
+    .scanner-container {
+      position: relative;
+      width: 360px;
+      max-width: 90vw;
+      height: 480px;
+      background: linear-gradient(180deg, #001122 0%, #000a1a 100%);
+      border-radius: 2rem;
+      box-shadow: 0 0 15px #00ff99, inset 0 0 20px #00ff99;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid #00ff99;
+    }
+
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(#003322 1px, transparent 1px),
+                  linear-gradient(90deg, #003322 1px, transparent 1px);
+      background-size: 30px 30px;
+      animation: gridMove 10s linear infinite;
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes gridMove {
+      0% { background-position: 0 0, 0 0; }
+      100% { background-position: 30px 30px, 30px 30px; }
+    }
+
+    .corner {
+      position: absolute;
+      border: 5px solid #00ff99;
+      box-shadow: 0 0 15px #00ff99;
+      border-radius: 2rem;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .corner.tl { top: 0; left: 0; width: 4rem; height: 5rem; border-right: none; border-bottom: none; border-top-left-radius: 2rem; }
+    .corner.tr { top: 0; right: 0; width: 5rem; height: 4rem; border-left: none; border-bottom: none; border-top-right-radius: 2rem; }
+    .corner.bl { bottom: 0; left: 0; width: 5rem; height: 4rem; border-right: none; border-top: none; border-bottom-left-radius: 2rem; }
+    .corner.br { bottom: 0; right: 0; width: 4rem; height: 5rem; border-left: none; border-top: none; border-bottom-right-radius: 2rem; }
+
+    .fingerprint-container {
+      position: relative;
+      width: 200px;
+      height: 240px;
+      filter: drop-shadow(0 0 8px #00ff99);
+      z-index: 3;
+      cursor: pointer;
+      user-select: none;
+    }
+    .fingerprint-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      user-select: none;
+      pointer-events: none;
+      filter: drop-shadow(0 0 6px #00ff99);
+    }
+
+    .laser-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, #00ff99, transparent);
+      box-shadow: 0 0 10px #00ff99;
+      animation: laserMove 3s linear infinite;
+      pointer-events: none;
+      border-radius: 2px;
+      z-index: 4;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .laser-line.active { opacity: 1; }
+    @keyframes laserMove {
+      0% { top: 0; opacity: 0; }
+      10% { opacity: 1; }
+      50% { top: calc(100% - 4px); opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 0; opacity: 0; }
+    }
+
+    .status-text {
+      margin-top: 1.5rem;
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #00ff99;
+      text-shadow: 0 0 8px #00ff99, 0 0 20px #00ff99;
+      user-select: none;
+      z-index: 3;
+      min-height: 3rem;
+      text-align: center;
+    }
+
+    .progress-ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 120px;
+      height: 120px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .progress-ring.active { opacity: 1; }
+    svg.progress-ring__svg { transform: rotate(-90deg); width: 120px; height: 120px; }
+    circle.progress-ring__circle {
+      stroke: #00ff99;
+      stroke-width: 6;
+      fill: transparent;
+      r: 54;
+      cx: 60;
+      cy: 60;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.1s linear;
+    }
+
+    .checkbox-container {
+      margin-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      user-select: none;
+      color: #00ff99;
+      cursor: pointer;
+      z-index: 5;
+    }
+    .checkbox-container input[type="checkbox"] {
+      width: 1.25rem;
+      height: 1.25rem;
+      accent-color: #00ff99;
+      cursor: pointer;
+    }
+
+    @media (min-width: 640px) {
+      .scanner-container { width: 400px; height: 520px; }
+      .fingerprint-container { width: 240px; height: 280px; }
+      .status-text { font-size: 3rem; }
+      .progress-ring { width: 140px; height: 140px; }
+      svg.progress-ring__svg { width: 140px; height: 140px; }
+      circle.progress-ring__circle { r: 62; cx: 70; cy: 70; stroke-width: 7; }
+    }
+  </style>
+</head>
+<body>
+  <div aria-label="Cyber tech fingerprint scanner with touch and hold access" class="scanner-container" role="main">
+    <div aria-hidden="true" class="grid-bg"></div>
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <div class="fingerprint-container" id="fingerprintArea" tabindex="0" role="button" aria-pressed="false" aria-label="Fingerprint scanner, touch and hold to access">
+      <img
+        src="https://storage.googleapis.com/a1aa/image/ed7408d5-6756-4e89-f027-5d5df58b8ed0.jpg"
+        alt="Cyber style fingerprint pattern glowing in green on dark background"
+        draggable="false"
+      />
+      <div class="laser-line" id="laserLine"></div>
+    </div>
+
+    <div aria-live="polite" aria-atomic="true" class="status-text" id="statusText">
+      ACCESS DENIED
+    </div>
+
+    <div class="progress-ring" id="progressRing" aria-hidden="true">
+      <svg class="progress-ring__svg" width="120" height="120">
+        <circle
+          class="progress-ring__circle"
+          cx="60"
+          cy="60"
+          r="54"
+          stroke="#00ff99"
+          stroke-width="6"
+          fill="transparent"
+          style="stroke-dasharray: 339.292; stroke-dashoffset: 339.292"
+        ></circle>
+      </svg>
+    </div>
+
+    <label class="checkbox-container" for="robotCheck">
+      <input aria-label="I am not a robot checkbox" id="robotCheck" type="checkbox" />
+      I am not a robot
+    </label>
+  </div>
+
+  <audio id="freqSound" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+  <script>
+    (() => {
+      const fingerprintArea = document.getElementById("fingerprintArea");
+      const laserLine = document.getElementById("laserLine");
+      const progressRing = document.getElementById("progressRing");
+      const circle = progressRing.querySelector(".progress-ring__circle");
+      const radius = circle.r.baseVal.value;
+      const circumference = 2 * Math.PI * radius;
+      const statusText = document.getElementById("statusText");
+      const robotCheck = document.getElementById("robotCheck");
+      const freqSound = document.getElementById("freqSound");
+
+      let animationFrame = null;
+      let startTime = null;
+      const holdDuration = 3000; // 3 seconds
+      let soundInterval = null;
+
+      circle.style.strokeDasharray = circumference;
+      circle.style.strokeDashoffset = circumference;
+
+      function setProgress(percent) {
+        const offset = circumference - (percent / 100) * circumference;
+        circle.style.strokeDashoffset = offset;
+      }
+
+      function resetProgress() {
+        setProgress(0);
+        startTime = null;
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = null;
+        }
+        stopSound();
+        laserLine.classList.remove("active");
+        progressRing.classList.remove("active");
+        fingerprintArea.setAttribute("aria-pressed", "false");
+      }
+
+      function playSound() {
+        if (!freqSound) return;
+        freqSound.currentTime = 0;
+        freqSound.play().catch(() => {});
+      }
+
+      function startSoundLoop() {
+        if (soundInterval) return;
+        playSound();
+        soundInterval = setInterval(() => {
+          playSound();
+        }, 400);
+      }
+
+      function stopSound() {
+        if (soundInterval) {
+          clearInterval(soundInterval);
+          soundInterval = null;
+        }
+        freqSound.pause();
+        freqSound.currentTime = 0;
+      }
+
+      function onHoldComplete() {
+        robotCheck.checked = true;
+        robotCheck.setAttribute("aria-checked", "true");
+        fingerprintArea.setAttribute("aria-pressed", "true");
+        fingerprintArea.style.pointerEvents = "none";
+        stopSound();
+        laserLine.classList.remove("active");
+        progressRing.classList.remove("active");
+        statusText.textContent = "SCAN COMPLETE";
+        // Redirect to the checkbox page
+        setTimeout(() => {
+          window.location.href = "checkbox.html"; // Redirect to the new page
+        }, 1000);
+      }
+
+      function startHold() {
+        if (fingerprintArea.getAttribute("aria-pressed") === "true") return;
+        statusText.textContent = "SCANNING...";
+        startTime = null;
+        animationFrame = requestAnimationFrame(animateProgress);
+        startSoundLoop();
+        laserLine.classList.add("active");
+        progressRing.classList.add("active");
+      }
+
+      function animateProgress(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const percent = Math.min((elapsed / holdDuration) * 100, 100);
+        setProgress(percent);
+        if (percent < 100) {
+          animationFrame = requestAnimationFrame(animateProgress);
+        } else {
+          animationFrame = null;
+          onHoldComplete();
+        }
+      }
+
+      function cancelHold() {
+        if (fingerprintArea.getAttribute("aria-pressed") === "true") return;
+        statusText.textContent = "ACCESS DENIED";
+        resetProgress();
+      }
+
+      // Touch events
+      fingerprintArea.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        startHold();
+      });
+      fingerprintArea.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        cancelHold();
+      });
+      fingerprintArea.addEventListener("touchcancel", (e) => {
+        e.preventDefault();
+        cancelHold();
+      });
+
+      // Mouse events
+      fingerprintArea.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        startHold();
+      });
+      window.addEventListener("mouseup", (e) => {
+        cancelHold();
+      });
+
+      // Keyboard accessibility
+      let keyboardHoldInterval = null;
+      fingerprintArea.addEventListener("keydown", (e) => {
+        if (e.repeat) return;
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          startHold();
+          let start = Date.now();
+          keyboardHoldInterval = setInterval(() => {
+            const elapsed = Date.now() - start;
+            const percent = Math.min((elapsed / holdDuration) * 100, 100);
+            setProgress(percent);
+            if (percent >= 100) {
+              clearInterval(keyboardHoldInterval);
+              keyboardHoldInterval = null;
+              onHoldComplete();
+            }
+          }, 50);
+          startSoundLoop();
+        }
+      });
+      fingerprintArea.addEventListener("keyup", (e) => {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          if (keyboardHoldInterval) {
+            clearInterval(keyboardHoldInterval);
+            keyboardHoldInterval = null;
+          }
+          cancelHold();
+        }
+      });
+
+      // Prevent context menu on long press
+      fingerprintArea.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+      });
+    })();
+  </script>
+</body>
+</html>

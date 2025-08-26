@@ -1,0 +1,179 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <title>Verification Complete</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap");
+
+    body {
+      margin: 0;
+      background: #010a1a;
+      font-family: "Orbitron", monospace;
+      color: #00ff99;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      user-select: none;
+      overflow: hidden;
+      padding: 1rem;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+      color: #00ff99;
+      text-shadow: 0 0 8px #00ff99;
+      user-select: none;
+      z-index: 5;
+    }
+    .checkbox-container input[type="checkbox"] {
+      width: 2rem;
+      height: 2rem;
+      accent-color: #00ff99;
+      cursor: default;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .checkbox-container input[type="checkbox"].ticking {
+      transform: scale(1.2);
+      box-shadow: 0 0 15px #00ff99, 0 0 30px #00ff99;
+    }
+
+    .access-granted-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      z-index: 20;
+      overflow: hidden;
+    }
+    .access-granted-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bubble {
+      background: radial-gradient(circle, rgba(0, 255, 153, 0.3) 0%, rgba(0, 255, 153, 0.1) 70%);
+      border: 3px solid #00ff99;
+      border-radius: 2rem;
+      padding: 2rem 4rem;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #00ff99;
+      text-shadow: 0 0 20px #00ff99;
+      text-transform: uppercase;
+      box-shadow: 0 0 20px #00ff99;
+      animation: bubblePop 0.6s ease-out;
+      text-align: center;
+    }
+    @keyframes bubblePop {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .blast-particle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: blast 1s ease-out forwards;
+    }
+    @keyframes blast {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+    }
+
+    @media (min-width: 640px) {
+      .checkbox-container { font-size: 2rem; }
+      .checkbox-container input[type="checkbox"] { width: 2.5rem; height: 2.5rem; }
+      .bubble { font-size: 3rem; padding: 3rem 5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <label class="checkbox-container" for="robotCheck">
+      <input aria-label="I am not a robot checkbox" id="robotCheck" type="checkbox" />
+      I am not a robot
+    </label>
+  </div>
+
+  <div aria-live="assertive" class="access-granted-overlay" id="accessGrantedOverlay" role="alert">
+    <div class="bubble">ACCESS GRANTED</div>
+  </div>
+
+  <audio id="tickSound" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+  <script>
+    (() => {
+      const robotCheck = document.getElementById("robotCheck");
+      const accessOverlay = document.getElementById("accessGrantedOverlay");
+      const tickSound = document.getElementById("tickSound");
+
+      function playSound() {
+        if (!tickSound) return;
+        tickSound.currentTime = 0;
+        tickSound.play().catch(() => {});
+      }
+
+      function createBlastAnimation() {
+        const colors = ["#ff00ff", "#00ff99", "#ff9900", "#00ccff", "#ff3333"];
+        for (let i = 0; i < 50; i++) {
+          const particle = document.createElement("div");
+          particle.className = "blast-particle";
+          particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+          particle.style.left = "50%";
+          particle.style.top = "50%";
+          particle.style.setProperty("--tx", `${(Math.random() - 0.5) * 800}px`);
+          particle.style.setProperty("--ty", `${(Math.random() - 0.5) * 800}px`);
+          particle.style.animationDelay = `${Math.random() * 0.5}s`;
+          accessOverlay.appendChild(particle);
+          particle.addEventListener("animationend", () => {
+            particle.remove();
+          });
+        }
+      }
+
+      // Automatically tick checkbox after 1 second
+      setTimeout(() => {
+        robotCheck.classList.add("ticking");
+        playSound();
+        setTimeout(() => {
+          robotCheck.checked = true;
+          robotCheck.setAttribute("aria-checked", "true");
+          robotCheck.classList.remove("ticking");
+          accessOverlay.classList.add("visible");
+          createBlastAnimation();
+          // Redirect after animations (2 seconds)
+          setTimeout(() => {
+            window.location.href = "https://beacons.ai/sudarshanbadli"; // Replace with your target URL
+          }, 2000);
+        }, 600); // Duration of checkbox tick animation
+      }, 1000); // Delay before starting checkbox animation
+    })();
+  </script>
+</body>
+</html>
